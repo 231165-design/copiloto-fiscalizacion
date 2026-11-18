@@ -1,8 +1,9 @@
-import { RotateCcw, ShieldCheck } from 'lucide-react'
+import { RotateCcw, ShieldCheck, FlaskConical } from 'lucide-react'
 import CameraView  from '../components/CameraView/CameraView.jsx'
 import PlateForm   from '../components/PlateForm/PlateForm.jsx'
 import ResultCard  from '../components/ResultCard/ResultCard.jsx'
 import { useSessionStore } from '../store/sessionStore.js'
+import { isDemoMode } from '../services/api.js'
 
 export default function ScanPage() {
   const resetScan    = useSessionStore((s) => s.resetScan)
@@ -31,6 +32,20 @@ export default function ScanPage() {
           </button>
         )}
       </div>
+
+      {/* Banner modo demo */}
+      {isDemoMode && (
+        <div className="mx-4 mb-3 flex items-center gap-2 px-3 py-2 rounded-xl
+                        bg-amber-950/60 border border-amber-700/50 text-amber-300 text-xs font-medium">
+          <FlaskConical size={14} className="shrink-0" />
+          <span>
+            <strong>Modo demo</strong> — sin backend activo.
+            Placas disponibles: <code className="font-mono">ABC-1234</code>,{' '}
+            <code className="font-mono">XYZ-9876</code>,{' '}
+            <code className="font-mono">PQR-456</code>
+          </span>
+        </div>
+      )}
 
       <CameraView />
       <PlateForm />
