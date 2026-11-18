@@ -38,8 +38,12 @@ export default function CameraView() {
                       border-2 border-blue-500/70 shadow-[0_0_24px_rgba(59,130,246,0.25)]
                       bg-slate-900">
 
-        {/* Stream de video */}
-        <video ref={videoRef} className="w-full block" playsInline muted />
+        {/* Stream de video.
+            autoPlay: fallback por si 'canplay' llega después de play() en algunos navegadores.
+            muted + playsInline: requeridos por las políticas de autoplay móvil.
+            El hook espera 'canplay' antes de llamar play(), así que autoPlay solo actúa
+            en casos extremos sin crear una nueva race condition. */}
+        <video ref={videoRef} className="w-full block" playsInline muted autoPlay />
 
         {/* Overlay oscuro con recorte central */}
         <div className="absolute inset-0 pointer-events-none">
