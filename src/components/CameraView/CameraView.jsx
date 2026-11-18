@@ -31,19 +31,17 @@ export default function CameraView() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 px-4">
+    <div className="flex flex-col items-center gap-4 px-4 w-full">
 
-      {/* Visor de cámara */}
-      <div className="relative w-full max-w-sm rounded-2xl overflow-hidden
-                      border-2 border-blue-500/70 shadow-[0_0_24px_rgba(59,130,246,0.25)]
+      {/* Visor de cámara
+          .camera-viewport  → aspect-ratio 4:3, max-height 38 vh (42 vh en ≥640 px)
+          El <video> llena el contenedor con object-fit:cover (definido en index.css). */}
+      <div className="camera-viewport rounded-2xl
+                      border-2 border-blue-500/70
+                      shadow-[0_0_24px_rgba(59,130,246,0.25)]
                       bg-slate-900">
 
-        {/* Stream de video.
-            autoPlay: fallback por si 'canplay' llega después de play() en algunos navegadores.
-            muted + playsInline: requeridos por las políticas de autoplay móvil.
-            El hook espera 'canplay' antes de llamar play(), así que autoPlay solo actúa
-            en casos extremos sin crear una nueva race condition. */}
-        <video ref={videoRef} className="w-full block" playsInline muted autoPlay />
+        <video ref={videoRef} playsInline muted autoPlay />
 
         {/* Overlay oscuro con recorte central */}
         <div className="absolute inset-0 pointer-events-none">

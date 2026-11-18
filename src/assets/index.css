@@ -3,41 +3,91 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * viewport-fit=cover en index.html expone las variables safe-area-inset-*.
+   * Asegúrate de que <meta name="viewport"> incluya viewport-fit=cover.
+   */
+  :root {
+    /* Alturas fijas de chrome de la app — úsalas en cualquier componente */
+    --header-h: 56px;
+    --nav-h: 64px;
+    /* Espacio extra para la home bar de iOS */
+    --nav-safe: env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
   body {
     @apply bg-slate-950 text-white;
     font-family: 'Inter', system-ui, sans-serif;
+    /* Evita rebote de scroll en iOS que confunde el layout */
+    overscroll-behavior: none;
   }
 }
 
 @layer utilities {
-  /* Línea de escaneo animada */
+  /* ── Animaciones del visor de cámara ──────────────────────────────────── */
+
   @keyframes scan-line {
     0%   { top: 10%; opacity: 1; }
     50%  { opacity: 0.6; }
     100% { top: 85%; opacity: 1; }
   }
-
   .animate-scan {
     animation: scan-line 2s ease-in-out infinite alternate;
   }
 
-  /* Pulso suave en las esquinas del visor */
   @keyframes corner-pulse {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.4; }
   }
-
   .animate-corner-pulse {
     animation: corner-pulse 2s ease-in-out infinite;
   }
 
-  /* Entrada suave de la tarjeta de resultado */
+  /* ── Entrada de la tarjeta de resultado ───────────────────────────────── */
+
   @keyframes slide-up {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
   .animate-slide-up {
     animation: slide-up 0.35s ease-out forwards;
+  }
+
+  /* ── Visor de cámara con aspect-ratio fijo ────────────────────────────── */
+
+  /*
+   * Fuerza 4:3 en móvil y limita la altura máxima absoluta a 38 vh,
+   * dejando siempre espacio visible para los botones y resultados.
+   * En pantallas >= 640 px se permite hasta 42 vh.
+   */
+  .camera-viewport {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: 38vh;
+    overflow: hidden;
+  }
+
+  @media (min-width: 640px) {
+    .camera-viewport {
+      max-height: 42vh;
+    }
+  }
+
+  /*
+   * El <video> llena el contenedor pero nunca desborda:
+   * object-fit: cover recorta sin distorsionar.
+   */
+  .camera-viewport video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 }
