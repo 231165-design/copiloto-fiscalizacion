@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+lambda/node_modules/
+
+# Build
+dist/
+.aws-sam/
+
+# Variables de entorno — NUNCA subir al repositorio
+.env
+.env.local
+.env.*.local
+
+# Vite
+*.local
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

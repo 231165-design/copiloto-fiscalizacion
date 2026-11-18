@@ -1,0 +1,9 @@
+{
+  "name": "copiloto-fiscalizacion-lambda",
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/util-dynamodb": "^3.600.0"
+  }
+}

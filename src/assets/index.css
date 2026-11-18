@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-white;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Línea de escaneo animada */
+  @keyframes scan-line {
+    0%   { top: 10%; opacity: 1; }
+    50%  { opacity: 0.6; }
+    100% { top: 85%; opacity: 1; }
+  }
+
+  .animate-scan {
+    animation: scan-line 2s ease-in-out infinite alternate;
+  }
+
+  /* Pulso suave en las esquinas del visor */
+  @keyframes corner-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .animate-corner-pulse {
+    animation: corner-pulse 2s ease-in-out infinite;
+  }
+
+  /* Entrada suave de la tarjeta de resultado */
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.35s ease-out forwards;
+  }
+}

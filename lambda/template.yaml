@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  Copiloto de Fiscalizacion — Backend serverless
+  POST /plate/query -> Lambda -> DynamoDB
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures: [arm64]      # Graviton2: mismo precio, ~20 % más rápido
+    Timeout: 10
+    MemorySize: 256
+    Environment:
+      Variables:
+        VEHICLES_TABLE: !Ref VehiclesTable
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, prod]
+
+Resources:
+
+  # ── API Gateway ───────────────────────────────────────────────────────────
+  PlateApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: copiloto-fiscalizacion-api
+      StageName: !Ref StageName
+      Auth:
+        ApiKeyRequired: true          # header x-api-key obligatorio
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,x-api-key'"
+        AllowOrigin: "'*'"
+
+  # ── Lambda ────────────────────────────────────────────────────────────────
+  QueryPlateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub copiloto-query-plate-${StageName}
+      CodeUri: queryPlate/
+      Handler: handler.handler
+      Description: Consulta el padrón vehicular por número de placa
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref VehiclesTable
+      Events:
+        PostPlate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlateApi
+            Path: /plate/query
+            Method: POST
+        OptionsPlate:                 # Preflight CORS
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlateApi
+            Path: /plate/query
+            Method: OPTIONS
+
+  # ── API Key + Usage Plan ──────────────────────────────────────────────────
+  PlateApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn: PlateApiStage          # SAM genera "<Api>Stage" automáticamente
+    Properties:
+      Name: !Sub copiloto-api-key-${StageName}
+      Enabled: true
+      StageKeys:
+        - RestApiId: !Ref PlateApi
+          StageName: !Ref StageName
+
+  PlateUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName: !Sub copiloto-usage-plan-${StageName}
+      ApiStages:
+        - ApiId: !Ref PlateApi
+          Stage: !Ref StageName
+      Throttle:
+        RateLimit: 50
+        BurstLimit: 100
+
+  PlateUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref PlateApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref PlateUsagePlan
+
+  # ── DynamoDB ──────────────────────────────────────────────────────────────
+  VehiclesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain            # protege datos al hacer sam delete
+    Properties:
+      TableName: !Sub vehicles-${StageName}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: plateId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: plateId
+          KeyType: HASH
+
+Outputs:
+  ApiBaseUrl:
+    Description: URL base para VITE_API_BASE_URL
+    Value: !Sub https://${PlateApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}
+
+  ApiKeyId:
+    Description: ID de la API Key (usa 'aws apigateway get-api-key --api-key <id> --include-value' para ver el valor)
+    Value: !Ref PlateApiKey
+
+  VehiclesTableName:
+    Description: Nombre de la tabla DynamoDB
+    Value: !Ref VehiclesTable
